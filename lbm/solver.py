@@ -86,6 +86,19 @@ class LatticeBoltzmann:
         else:
             self.inlet_u = None
 
+        # Pre-compute the boundary links for the momentum-exchange force: for
+        # each moving direction i, the fluid nodes whose neighbour in direction
+        # i is solid.  The obstacle geometry is fixed, so this is done once.
+        self.force_on_solid = np.zeros(2)
+        if self.has_solid:
+            fluid = ~self.solid
+            self._link_masks = [
+                fluid & np.roll(self.solid, (-CX[i], -CY[i]), axis=(0, 1))
+                for i in range(1, NQ)
+            ]
+        else:
+            self._link_masks = None
+
         # Initialise populations at equilibrium.
         rho = np.full((self.nx, self.ny), self.rho0)
         u0 = np.zeros((2, self.nx, self.ny))
@@ -169,6 +182,15 @@ class LatticeBoltzmann:
 
         # 7. Bounce-back on the solid nodes (no-slip walls / obstacle).
         if self.has_solid:
+            # Momentum-exchange force on the obstacle, from the post-collision
+            # populations heading into the wall: F = sum_i 2 c_i fout_i(x_f).
+            fx = fy = 0.0
+            for idx, i in enumerate(range(1, NQ)):
+                amount = fout[i][self._link_masks[idx]].sum()
+                fx += 2.0 * CX[i] * amount
+                fy += 2.0 * CY[i] * amount
+            self.force_on_solid = np.array([fx, fy])
+
             for i in range(NQ):
                 fout[i, self.solid] = f[OPP[i], self.solid]
 

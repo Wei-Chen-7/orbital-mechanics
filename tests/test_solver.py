@@ -62,3 +62,24 @@ def test_cylinder_flow_runs_and_stays_finite():
 def test_inlet_velocity_shape_validation():
     with pytest.raises(ValueError):
         LatticeBoltzmann(8, 6, tau=0.7, inlet_velocity=np.zeros((2, 5)))
+
+
+def test_drag_coefficient_is_physically_reasonable():
+    # Steady (sub-critical) flow past a cylinder at Re = 20.  The drag
+    # coefficient should land near the textbook value (~2, raised somewhat by
+    # channel confinement) and the lift should be ~0 by symmetry.
+    from lbm import force_coefficients
+
+    nx, ny = 160, 60
+    U, D, Re = 0.05, 10.0, 20.0
+    nu = U * D / Re
+    tau = 3 * nu + 0.5
+    solid = cylinder_mask(nx, ny, nx // 4, ny // 2, D / 2)
+    sim = LatticeBoltzmann(nx, ny, tau, solid=solid, inlet_velocity=(U, 0.0))
+
+    sim.run(6000)
+    cd, cl = force_coefficients(sim.force_on_solid, U, D)
+
+    assert 1.5 < cd < 4.0          # textbook ~2, plus confinement
+    assert abs(cl) < 0.05          # symmetric flow -> negligible lift
+    assert sim.force_on_solid[0] > 0   # drag points downstream

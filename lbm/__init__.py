@@ -18,6 +18,8 @@ from .utils import (
     vorticity,
     speed,
     poiseuille_profile,
+    obstacle_force,
+    force_coefficients,
     dominant_frequency,
     strouhal_number,
 )
@@ -38,6 +40,8 @@ __all__ = [
     "vorticity",
     "speed",
     "poiseuille_profile",
+    "obstacle_force",
+    "force_coefficients",
     "dominant_frequency",
     "strouhal_number",
 ]
