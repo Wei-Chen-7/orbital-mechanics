@@ -128,22 +128,32 @@ def solar_system(planets=("Mercury", "Venus", "Earth", "Mars", "Jupiter"), seed=
     return System(positions, velocities, masses, G=G)
 
 
-def plummer_sphere(n=500, total_mass=1.0, radius=1.0, G=1.0, seed=0):
-    """A Plummer-model star cluster: ``n`` bodies in virial equilibrium (2D).
+def _random_directions(rng, n, dim):
+    """``n`` isotropic unit vectors in ``dim`` dimensions."""
+    v = rng.standard_normal((n, dim))
+    v /= np.linalg.norm(v, axis=1, keepdims=True)
+    return v
 
-    Positions are drawn from the projected Plummer density and velocities from
-    the local escape speed, then both are recentred to the COM frame.  This is
-    the input for the Barnes-Hut cluster animation.  Softening of order
-    ``radius / sqrt(n)`` is appropriate when integrating it.
+
+def plummer_sphere(n=500, total_mass=1.0, radius=1.0, G=1.0, seed=0, dim=2):
+    """A Plummer-model star cluster: ``n`` bodies in virial equilibrium.
+
+    Radii are drawn from the Plummer cumulative mass profile and speeds from
+    the Plummer velocity distribution, each pointed in an isotropic random
+    direction (``dim`` may be 2 or 3); positions and velocities are then
+    recentred to the COM frame.  This is the input for the Barnes-Hut cluster
+    demos.  Softening of order ``radius / sqrt(n)`` is appropriate when
+    integrating it.
     """
+    if dim not in (2, 3):
+        raise ValueError("dim must be 2 or 3")
     rng = np.random.default_rng(seed)
     m = total_mass / n
 
     # Radii from the Plummer cumulative mass profile via inverse transform.
     f = rng.uniform(0, 1, n)
     r = radius / np.sqrt(f ** (-2.0 / 3.0) - 1.0)
-    theta = rng.uniform(0, 2 * np.pi, n)
-    pos = np.column_stack([r * np.cos(theta), r * np.sin(theta)])
+    pos = r[:, None] * _random_directions(rng, n, dim)
 
     # Speeds: sample the Plummer velocity distribution g(q) = q^2 (1-q^2)^3.5.
     q = np.empty(n)
@@ -156,8 +166,7 @@ def plummer_sphere(n=500, total_mass=1.0, radius=1.0, G=1.0, seed=0):
                 break
     v_esc = np.sqrt(2.0) * (1.0 + r ** 2 / radius ** 2) ** -0.25 * np.sqrt(G * total_mass / radius)
     speed = q * v_esc
-    phi = rng.uniform(0, 2 * np.pi, n)
-    vel = np.column_stack([speed * np.cos(phi), speed * np.sin(phi)])
+    vel = speed[:, None] * _random_directions(rng, n, dim)
 
     masses = np.full(n, m)
     pos -= np.average(pos, axis=0, weights=masses)
