@@ -31,3 +31,6 @@ packages = ["nbody"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# Make the in-tree `nbody` package importable without installing it, so
+# `pytest` works from a fresh clone (e.g. in CI) as well as after `pip install`.
+pythonpath = ["."]
