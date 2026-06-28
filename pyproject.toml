@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lbm-d2q9"
+version = "0.1.0"
+description = "A small, vectorised 2-D Lattice Boltzmann (D2Q9, BGK) fluid solver in NumPy."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Wei Chen" }]
+keywords = ["lattice-boltzmann", "cfd", "fluid-dynamics", "d2q9", "numpy"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "numpy>=1.23",
+    "matplotlib>=3.6",
+    "pillow>=9.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Repository = "https://github.com/wei-chen-7/orbital-mechanics"
+
+[tool.setuptools]
+packages = ["lbm"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
