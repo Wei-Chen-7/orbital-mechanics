@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nbody"
+version = "0.1.0"
+description = "A small, well-tested N-body gravitational simulator with a symplectic integrator."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Wei Chen" }]
+keywords = ["n-body", "gravity", "orbital-mechanics", "symplectic", "barnes-hut"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+plots = ["matplotlib>=3.6", "pillow>=9.0"]
+dev = ["pytest>=7.0", "matplotlib>=3.6", "pillow>=9.0"]
+
+[tool.setuptools]
+packages = ["nbody"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+# Make the in-tree `nbody` package importable without installing it, so
+# `pytest` works from a fresh clone (e.g. in CI) as well as after `pip install`.
+pythonpath = ["."]
