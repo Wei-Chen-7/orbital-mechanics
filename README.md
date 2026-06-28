@@ -99,18 +99,22 @@ is exponential (note the log axis).
 ### Barnes–Hut tree (O(N log N))
 
 For large $N$ the direct $O(N^2)$ sum is the bottleneck. `nbody/barnes_hut.py`
-implements a 2D quadtree Barnes–Hut solver: distant groups of bodies are
-replaced by their centre of mass when the cell subtends an angle below
-$\theta$. With $\theta = 0$ it reproduces the direct sum to machine precision;
-at a typical $\theta = 0.5$ the per-body force error is ~1%, and the cost scales
-as $O(N\log N)$, overtaking the direct sum a couple of thousand bodies in.
+implements a tree-code Barnes–Hut solver — a quadtree in 2D, an octree in 3D —
+where distant groups of bodies are replaced by their centre of mass when the
+cell subtends an angle below $\theta$. With $\theta = 0$ it reproduces the
+direct sum to machine precision (in both 2D and 3D); at a typical $\theta = 0.5$
+the per-body force error is ~1%, and the cost scales as $O(N\log N)$, overtaking
+the direct sum a couple of thousand bodies in. (The constant factor is larger in
+pure Python than a compiled code, so the 2D crossover sits around $N \approx
+2500$; the 3D octree carries more overhead per node.)
 
 ![Barnes-Hut scaling](figures/barnes_hut_scaling.png)
 
 A Plummer-sphere star cluster of a few hundred bodies, evolved entirely with the
-tree code:
+tree code — in 2D, and as a 3D octree:
 
 ![Cluster](figures/cluster.gif)
+![3D cluster](figures/cluster_3d.gif)
 
 ## Install
 
@@ -154,7 +158,8 @@ python examples/kepler_third_law.py       # T^2 vs a^3
 python examples/solar_system.py           # multi-body orbit plot
 python examples/figure_eight.py           # choreography + animation
 python examples/three_body_sensitivity.py # chaos / Lyapunov-style divergence
-python examples/barnes_hut_cluster.py     # cluster animation + scaling plot
+python examples/barnes_hut_cluster.py     # 2D cluster animation + scaling plot
+python examples/octree_3d.py              # 3D octree cluster animation
 ```
 
 ## Tests
@@ -178,7 +183,7 @@ nbody/
   integrators.py        velocity-Verlet, RK4, simulate(), Trajectory
   diagnostics.py        orbital elements, eccentricity vector, period
   initial_conditions.py two-body, solar system, figure-eight, Plummer, ...
-  barnes_hut.py         2D quadtree Barnes-Hut force evaluation
+  barnes_hut.py         Barnes-Hut force evaluation (2D quadtree / 3D octree)
 tests/                  pytest suite (physics, not smoke tests)
 examples/               figure-generating demo scripts
 figures/                generated figures
@@ -188,7 +193,9 @@ figures/                generated figures
 
 This is a learning/portfolio project, not a research code. Notable limitations:
 
-- The direct solver works in 2D or 3D; the Barnes–Hut tree is 2D only.
+- Both the direct solver and the Barnes–Hut tree work in 2D and 3D. The tree is
+  a pure-Python implementation, so its constant factor is large; it is meant to
+  demonstrate the $O(N\log N)$ scaling, not to compete with a compiled code.
 - The integrator uses a fixed timestep. Symplectic integrators and naive
   adaptive timestepping don't mix (varying $\Delta t$ breaks the conservation
   property), so adaptivity is deliberately omitted.
